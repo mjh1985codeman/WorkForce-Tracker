@@ -8,9 +8,9 @@ const db = mysql.createConnection(
     user: "mhodges",
     // Your MySQL password
     password: "mjh1",
-    database: "election",
+    database: "workforce_tracker_db",
   },
-  console.log("Connected to the election database.")
+  console.log("Connected to the workforce_tracker_db database.")
 );
 
 module.exports = db;

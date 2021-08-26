@@ -1,0 +1,27 @@
+{
+  "name": "WorkForce-Tracker",
+  "version": "1.0.0",
+  "description": "AS A business owner\r I WANT to be able to view and manage the departments, roles, and employees in my company\r SO THAT I can organize and plan my business",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mjh1985codeman/WorkForce-Tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mjh1985codeman/WorkForce-Tracker/issues"
+  },
+  "homepage": "https://github.com/mjh1985codeman/WorkForce-Tracker#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "express": "^4.17.1",
+    "inquirer": "^8.1.2",
+    "mysql2": "^2.3.0"
+  }
+}
