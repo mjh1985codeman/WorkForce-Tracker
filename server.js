@@ -69,7 +69,33 @@ const addRolePrompts = [
 ];
 
 function initApp() {
-  inquirer.prompt(firstQuestions);
+  inquirer.prompt(firstQuestions).then((firstQuestionsResponses) => {
+    // firstResponse is the name value of the firstQuestions Array.
+    let userResponses = firstQuestionsResponses.firstResponse;
+    switch (userResponses) {
+      case "View All Departments":
+        console.log("user picked view all departments");
+        break;
+      case "View All Roles":
+        console.log("user picked view all roles");
+        break;
+      case "View All Employees":
+        console.log("user picked View All Employees");
+        break;
+      case "Add a Department":
+        console.log("user picked Add a Department");
+        break;
+      case "Add a Role":
+        console.log("user picked Add a Role");
+        break;
+      case "Add a Employee":
+        console.log("user picked Add a Employee");
+        break;
+      case "Update Employee Role":
+        console.log("user picked update employee role");
+        break;
+    }
+  });
 }
 
 // Start server after DB connection
