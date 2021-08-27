@@ -32,13 +32,23 @@ const firstQuestions = [
 ];
 
 //Options that require additional Input.
-const addDeptPrompts = [
-  {
-    type: "input",
-    message: "Enter Department Name",
-    name: "newDept",
-  },
-];
+function addDepartment() {
+  const addDeptPrompt = [
+    {
+      type: "input",
+      message: "Enter Department Name",
+      name: "newDept",
+    },
+  ];
+  inquirer.prompt(addDeptPrompt).then((addDeptResponse) => {
+    let newDepartment = addDeptResponse.newDept;
+    db.query(
+      //Getting the dept_name values from the departments table
+      `INSERT INTO departments (dept_name) VALUES('${newDepartment}');`
+    );
+    initApp();
+  });
+}
 
 //Add Role Function.
 
@@ -78,25 +88,33 @@ function addRole() {
   inquirer.prompt(addRolePrompts).then;
 }
 
-const addEmpPrompts = [
-  {
-    type: "input",
-    message: "Enter new Employees first name",
-    name: "newEmpFirstName",
-  },
-  {
-    type: "input",
-    message: "Enter new Employees last name",
-    name: "newEmpLastName",
-  },
-  {
-    type: "list",
-    message: "Choose this employee's Role",
-    name: "newEmpRole",
-    //Should this be an empty array as the choices will depend on the Roles that the user adds?
-    choices: [],
-  },
-];
+function addEmployee() {
+  let newEmpRoleArray = [];
+  const addEmpPrompts = [
+    {
+      type: "input",
+      message: "Enter new Employees first name",
+      name: "newEmpFirstName",
+    },
+    {
+      type: "input",
+      message: "Enter new Employees last name",
+      name: "newEmpLastName",
+    },
+    {
+      type: "list",
+      message: "Choose this employee's Role",
+      name: "newEmpRole",
+      choices: newEmpRoleArray,
+    },
+  ];
+  db.query(`SELECT roles.job_title FROM roles;`, function (err, results) {
+    results.forEach((i) => {
+      newEmpRoleArray.push(i.job_title);
+    });
+  });
+  inquirer.prompt(addEmpPrompts).then;
+}
 
 function initApp() {
   inquirer.prompt(firstQuestions).then((firstQuestionsResponses) => {
@@ -127,14 +145,14 @@ function initApp() {
         });
         break;
       case "Add a Department":
-        console.log("user picked Add a Department");
+        addDepartment();
         break;
       // Add a Role Case Functionality.
       case "Add a Role":
         addRole();
         break;
       case "Add a Employee":
-        console.log("user picked Add a Employee");
+        addEmployee();
         break;
       case "Update Employee Role":
         console.log("user picked update employee role");
