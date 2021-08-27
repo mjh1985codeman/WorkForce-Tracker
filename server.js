@@ -74,6 +74,10 @@ function initApp() {
         break;
       case "View All Employees":
         console.log("user picked View All Employees");
+        db.query(`SELECT * FROM employees`, function (err, results) {
+          printTable(results);
+          initApp();
+        });
         break;
       case "Add a Department":
         console.log("user picked Add a Department");
@@ -86,6 +90,9 @@ function initApp() {
         break;
       case "Update Employee Role":
         console.log("user picked update employee role");
+        break;
+      case "I'm Done":
+        db.end();
         break;
     }
   });

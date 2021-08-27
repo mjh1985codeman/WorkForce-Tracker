@@ -11,4 +11,7 @@ VALUES('Help Desk Tech','45000.00', 1),
 ('Product Manager','75000.00', 6),
 ('Sales Rep','55000.00', 7),
 ('Supervisor','49000.00', 8),
-('CS Rep','30000.00',9)
+('CS Rep','30000.00', 9)
+
+INSERT INTO employees (first_name, last_name, role_id, manager_id)
+VALUES('Jim','Smith', 5, 1),('Peyton','Manning', 4, 1)
