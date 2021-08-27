@@ -1,27 +1,9 @@
 //importing connection.js file.
 const db = require("./db/connection");
-const express = require("express");
 // Add near the top of the file
 const inquirer = require("inquirer");
-const cTable = require("console.table");
-const apiRoutes = require("./routes/apiRoutes");
+const { printTable } = require("console-table-printer");
 
-const PORT = process.env.PORT || 3001;
-const app = express();
-
-// Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-// Add after Express middleware
-app.use("/api", apiRoutes);
-
-// Default response for any other request (Not Found) this always needs to be the LAST route.
-app.use((req, res) => {
-  res.status(404).end();
-});
-
-// Question Variables.
-// First Questions that user is prompted with.
 const firstQuestions = [
   {
     type: "list",
@@ -35,6 +17,7 @@ const firstQuestions = [
       "Add a Role",
       "Add a Employee",
       "Update Employee Role",
+      "I'm Done",
     ],
   },
 ];
@@ -75,9 +58,19 @@ function initApp() {
     switch (userResponses) {
       case "View All Departments":
         console.log("user picked view all departments");
+        db.query(`SELECT * FROM departments`, function (err, results) {
+          printTable(results);
+          initApp();
+        });
+
         break;
       case "View All Roles":
         console.log("user picked view all roles");
+        db.query(`SELECT * FROM roles`, function (err, results) {
+          printTable(results);
+          initApp();
+        });
+
         break;
       case "View All Employees":
         console.log("user picked View All Employees");
@@ -102,9 +95,5 @@ function initApp() {
 db.connect((err) => {
   if (err) throw err;
   console.log("Database connected.");
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  initApp();
 });
-
-initApp();

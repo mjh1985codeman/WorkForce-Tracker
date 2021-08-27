@@ -1,10 +1,7 @@
 DROP DATABASE IF EXISTS workforce_tracker_db;
 CREATE DATABASE workforce_tracker_db;
 USE workforce_tracker_db;
--- 
--- DROP TABLE IF EXISTS departments;
--- DROP TABLE IF EXISTS roles;
--- DROP TABLE IF EXISTS employees;
+
 --
 CREATE TABLE departments (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -16,7 +13,7 @@ CREATE TABLE roles (
     job_title VARCHAR(30) NOT NULL,
     salary DECIMAL(10, 2),
     department_id INTEGER,
-    FOREIGN KEY (id) REFERENCES departments (id)
+    FOREIGN KEY (department_id) REFERENCES departments (id) ON DELETE SET NULL
 );
 --
 CREATE TABLE employees (
