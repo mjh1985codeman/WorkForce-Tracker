@@ -3,6 +3,14 @@ const db = require("./db/connection");
 // Add near the top of the file
 const inquirer = require("inquirer");
 const { printTable } = require("console-table-printer");
+const express = require("express");
+
+const PORT = process.env.PORT || 3001;
+const app = express();
+
+// Express middleware
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 const firstQuestions = [
   {
@@ -92,11 +100,15 @@ function initApp() {
         console.log("user picked update employee role");
         break;
       case "I'm Done":
-        db.end();
-        break;
+        // progammatically exits from the node js program.
+        process.exit();
     }
   });
 }
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 // Start server after DB connection
 db.connect((err) => {
