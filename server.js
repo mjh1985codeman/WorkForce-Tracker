@@ -1,4 +1,5 @@
 //importing connection.js file.
+
 const db = require("./db/connection");
 // Add near the top of the file
 const inquirer = require("inquirer");
@@ -39,7 +40,45 @@ const addDeptPrompts = [
   },
 ];
 
-const addRolePrompts = [
+//Add Role Function.
+
+function addRole() {
+  //created newRoleDeptArray variable to be used as the "choices" for the dept_name (from the departments table) that the
+  //new role will belong.
+  let newRoleDeptArray = [];
+  const addRolePrompts = [
+    {
+      type: "input",
+      message: "Enter new Role's name",
+      name: "newRole",
+    },
+    {
+      type: "input",
+      message: "What is this role's Salary?",
+      name: "newRoleSalary",
+    },
+    {
+      type: "list",
+      message: "Which Department does this role belong to?",
+      name: "newRoleDept",
+      choices: newRoleDeptArray,
+    },
+  ];
+  db.query(
+    //Getting the dept_name values from the departments table
+    `SELECT departments.dept_name FROM departments;`,
+    function (err, results) {
+      //for looping through the current dept_name values and displaying
+      //pushing each one to the newRoleDeptArray.
+      results.forEach((i) => {
+        newRoleDeptArray.push(i.dept_name);
+      });
+    }
+  );
+  inquirer.prompt(addRolePrompts).then;
+}
+
+const addEmpPrompts = [
   {
     type: "input",
     message: "Enter new Employees first name",
@@ -90,8 +129,9 @@ function initApp() {
       case "Add a Department":
         console.log("user picked Add a Department");
         break;
+      // Add a Role Case Functionality.
       case "Add a Role":
-        console.log("user picked Add a Role");
+        addRole();
         break;
       case "Add a Employee":
         console.log("user picked Add a Employee");
@@ -114,5 +154,16 @@ app.listen(PORT, () => {
 db.connect((err) => {
   if (err) throw err;
   console.log("Database connected.");
+  // Database Connect and Starter Title
+  console.log(
+    `====================================================================================
+    
+      WorkForce-Tracker
+    
+      Created By: Michael Hodges
+    
+=====================================================================================`
+  );
+
   initApp();
 });
