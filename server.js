@@ -143,6 +143,10 @@ function addRole() {
     console.log(newRoleDepartment);
     console.log("addRoleResponse =" + addRoleResponse);
 
+    //Run some kind of if/else / forlooop db query where we get the accompanying id of the
+    //departments table that matches the newRoleDepartment then assign that as the department_id
+    //in the Roles Table for the new Role.
+
     // db.query(
     //   `INSERT INTO roles (job_title, salary, department_id)
     //   VALUES ('${newRoleName}','${newRoleSalary}','${newRoleDepartment}');`
