@@ -128,7 +128,7 @@ function addRole() {
     `SELECT departments.dept_name FROM departments;`,
     function (err, results) {
       //for looping through the current dept_name values and displaying
-      //pushing each one to the newRoleDeptArray.
+      //pushing each one to the newRoleDeptArray so the user can assign the new role to a department.
       results.forEach((index) => {
         newRoleDeptArray.push(index.dept_name);
       });
@@ -137,20 +137,29 @@ function addRole() {
   inquirer.prompt(addRolePrompts).then((addRoleResponse) => {
     let newRoleName = addRoleResponse.newRole;
     let newRoleSalary = addRoleResponse.newRoleSalary;
-    let newRoleDepartment = addRoleResponse.newRoleDept;
+    let newRoleDepartmentName = addRoleResponse.newRoleDept;
+
     console.log(newRoleName);
     console.log(newRoleSalary);
-    console.log(newRoleDepartment);
-    console.log("addRoleResponse =" + addRoleResponse);
 
-    //Run some kind of if/else / forlooop db query where we get the accompanying id of the
-    //departments table that matches the newRoleDepartment then assign that as the department_id
-    //in the Roles Table for the new Role.
+    db.query(
+      //Getting the department id that corresponds with the new role's department name.
 
-    // db.query(
-    //   `INSERT INTO roles (job_title, salary, department_id)
-    //   VALUES ('${newRoleName}','${newRoleSalary}','${newRoleDepartment}');`
-    // );
+      `SELECT departments.id FROM departments WHERE ('${newRoleDepartmentName}') = departments.dept_name;`,
+      function (err, results) {
+        let newRoleDeptId = results;
+        console.log(newRoleDeptId);
+      }
+    );
+
+    db.query(
+      `INSERT INTO roles (job_title, salary, department_id) VALUES('${newRoleName}','${newRoleSalary}','${newRoleDeptId}');`
+    );
+
+    // Run some kind of if/else / forlooop db query where we get the accompanying id of the
+    // departments table that matches the newRoleDepartment then assign that as the department_id
+    // in the Roles Table for the new Role.
+
     askFirstQuestions();
   });
 }
@@ -182,21 +191,6 @@ function addEmployee() {
     //   choices: newEmpManagerArray,
     // },
   ];
-  db.query(`SELECT roles.job_title FROM roles;`, function (err, results) {
-    results.forEach((i) => {
-      newEmpRoleArray.push(i.job_title);
-    });
-  });
-  // db.query(
-  //   `SELECT employees.manager_id FROM employees`,
-  //   function (err, results) {
-  //     results.forEach((i) => {
-  //       if (i.manger_id !== NULL) {
-  //         newEmpManagerArray.push(i.manager_id);
-  //       }
-  //     });
-  //   }
-  // );
   inquirer.prompt(addEmpPrompts);
 }
 
@@ -218,6 +212,5 @@ db.connect((err) => {
     
 =====================================================================================`
   );
-
   askFirstQuestions();
 });
