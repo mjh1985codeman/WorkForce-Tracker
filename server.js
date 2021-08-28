@@ -4,14 +4,6 @@ const db = require("./db/connection");
 // Add near the top of the file
 const inquirer = require("inquirer");
 const { printTable } = require("console-table-printer");
-// const express = require("express");
-
-// const PORT = process.env.PORT || 3001;
-// const app = express();
-
-// Express middleware
-// app.use(express.urlencoded({ extended: false }));
-// app.use(express.json());
 
 //Global Variables.
 //This is an empty array that gets updated in the addRole function
@@ -23,12 +15,18 @@ let newRoleDeptArray = [];
 //and assigning a manager for the new employee.
 let newEmpRoleArray = [];
 let newEmpManagerArray = [];
+//These are empty arrays that gets updated in the updateEmployeeRole function
+//so the user has the appropriate choices when assigning the new role to the employee.
+let newRoleEmpNameArray = [];
+let newRoleForEmpArray = [];
 
 // function so the addNewEmployee Function has a "None" option for the new employees manager.
 function pushNoManagerOption() {
   let noManagerOption = "None";
   newEmpManagerArray.push(noManagerOption);
 }
+
+// ASK FIRST QUESTIONS FUNCTION //
 
 function askFirstQuestions() {
   const firstQuestions = [
@@ -87,8 +85,7 @@ function askFirstQuestions() {
         addEmployee();
         break;
       case "Update Employee Role":
-        console.log("user picked update employee role");
-        //updateRole();
+        updateEmployeeRole();
         break;
       case "I'm Done":
         // progammatically exits from the node js program.
@@ -97,7 +94,8 @@ function askFirstQuestions() {
   });
 }
 
-//Options that require additional Input.
+// ADD DEPARTMENT FUNCTION //
+
 function addDepartment() {
   const addDeptPrompt = [
     {
@@ -116,7 +114,7 @@ function addDepartment() {
   });
 }
 
-//Add Role Function.
+// ADD ROLE FUNCTION //
 
 function addRole() {
   const addRolePrompts = [
@@ -184,6 +182,8 @@ function addRole() {
     }
   );
 }
+
+// ADD EMPLOYEE FUNCTION //
 
 function addEmployee() {
   const addEmpPrompts = [
@@ -291,9 +291,60 @@ function addEmployee() {
   );
 }
 
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
+// UPDATE EMPLOYEE ROLE //
+
+function updateEmployeeRole() {
+  console.log("You made it here updateEmployee Role function");
+  const updateEmpRolePrompts = [
+    {
+      type: "list",
+      message: "Choose the Employee that you want to update.",
+      name: "newRoleEmpName",
+      choices: newRoleEmpNameArray,
+    },
+    {
+      type: "list",
+      message: "Choose the employee's new role.",
+      name: "newRoleForEmp",
+      choices: newRoleForEmpArray,
+    },
+  ];
+  inquirer.prompt(updateEmpRolePrompts).then((updateEmpRoleResponse) => {
+    let newRoleEmpNmeRes = updateEmpRoleResponse.newRoleEmpName;
+    let newRoleForEmpRes = updateEmpRoleResponse.newRoleForEmp;
+    console.log(newRoleEmpNmeRes);
+    console.log(newRoleForEmpRes);
+    //update db.querys will go here.
+  });
+
+  //DB Query to push the available employee names values from the employees table to the
+  //newRoleEmpNameArray so the user has the appropriate choices.
+  db.query(
+    //Getting the first and last names of the employees from the employees table.
+    `SELECT first_name, last_name FROM employees;`,
+    function (err, results) {
+      results.forEach((i) => {
+        newRoleEmpNameArray.push(i.first_name + " " + i.last_name);
+      });
+
+      if (err) {
+        console.log(err);
+      }
+    }
+  );
+
+  //DB Query to push the available roles from the roles table
+  //so the user can choose which role they want to update the employee to.
+  db.query(`SELECT job_title FROM roles;`, function (err, results) {
+    results.forEach((i) => {
+      newRoleForEmpArray.push(i.job_title);
+    });
+
+    if (err) {
+      console.log(err);
+    }
+  });
+}
 
 // Start server after DB connection
 db.connect((err) => {
