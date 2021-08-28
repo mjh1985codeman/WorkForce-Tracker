@@ -225,6 +225,28 @@ function addEmployee() {
       results.forEach((index) => {
         newEmpRoleArray.push(index.job_title);
       });
+
+      if (err) {
+        console.log("first err: ");
+        console.log(err);
+      }
+    }
+  );
+
+  //DB Query to push the available employees first_name and last_name from the employees table
+  //that ARE a manager (aka their manager id is NOT NULL) to the newEmpManagerArray so they
+  //can assign a manager to the new employee.
+  db.query(
+    `SELECT first_name, last_name FROM employees WHERE employees.manager_id IS NOT NULL;`,
+    function (err, results) {
+      results.forEach((index) => {
+        newEmpManagerArray.push(index.first_name + " " + index.last_name);
+      });
+
+      if (err) {
+        console.log("second err: ");
+        console.log(err);
+      }
     }
   );
 }
