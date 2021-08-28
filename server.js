@@ -4,14 +4,14 @@ const db = require("./db/connection");
 // Add near the top of the file
 const inquirer = require("inquirer");
 const { printTable } = require("console-table-printer");
-const express = require("express");
+// const express = require("express");
 
-const PORT = process.env.PORT || 3001;
-const app = express();
+// const PORT = process.env.PORT || 3001;
+// const app = express();
 
 // Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+// app.use(express.urlencoded({ extended: false }));
+// app.use(express.json());
 
 //Global Variables.
 //This is an empty array that gets updated in the addRole function
@@ -23,6 +23,12 @@ let newRoleDeptArray = [];
 //and assigning a manager for the new employee.
 let newEmpRoleArray = [];
 let newEmpManagerArray = [];
+
+// function so the addNewEmployee Function has a "None" option for the new employees manager.
+function pushNoManagerOption() {
+  let noManagerOption = "None";
+  newEmpManagerArray.push(noManagerOption);
+}
 
 function askFirstQuestions() {
   const firstQuestions = [
@@ -210,36 +216,45 @@ function addEmployee() {
     let newEmpRle = addEmpResponse.newEmpRole;
     let newEmpMr = addEmpResponse.newEmpMgr;
 
-    console.log(newEmpFirstNme);
-    console.log(newEmpLastNme);
-    console.log(newEmpRle);
-    console.log(newEmpMr);
-
     //INQUIRER PROMPTS done. . .On to the step to INSERT the new Employee into the employees table
     //Need to get the Manager ID of the Manager that they selected and use that as the
     //new Employee's manager_id
+    //*****************************************************//
+    // IF / ELSE statement based on if this new employee has a manager or not.
+    //*****************************************************//
+    if (newEmpMr !== "None") {
+      db.query(
+        `SELECT id FROM employees WHERE CONCAT(first_name, " ", last_name) = "${newEmpMr}";`,
+        function (err, results) {
+          let newEmpMgrId = results[0].id;
 
-    db.query(
-      `SELECT id FROM employees WHERE CONCAT(first_name, " ", last_name) = "${newEmpMr}";`,
-      function (err, results) {
-        let newEmpMgrId = results[0].id;
-        console.log(newEmpMgrId);
+          //Another db.query to get the role id that matches the role title they selected so we can
+          //use that insert the new employee into the employees table:
+          db.query(
+            `SELECT id FROM roles WHERE ('${newEmpRle}') = roles.job_title;`,
+            function (err, results) {
+              let newEmpRleId = results[0].id;
+              //INSERTING the new Employee into the Employees Table.
+              db.query(
+                `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES('${newEmpFirstNme}','${newEmpLastNme}','${newEmpRleId}','${newEmpMgrId}')`
+              );
+            }
+          );
+        }
+      );
+    } else {
+      db.query(
+        `SELECT id FROM roles WHERE ('${newEmpRle}') = roles.job_title;`,
+        function (err, results) {
+          let newEmpRleId = results[0].id;
+          //INSERTING the new Employee into the Employees Table.
+          db.query(
+            `INSERT INTO employees (first_name, last_name, role_id) VALUES('${newEmpFirstNme}','${newEmpLastNme}','${newEmpRleId}')`
+          );
+        }
+      );
+    }
 
-        //Another db.query to get the role id that matches the role title they selected so we can
-        //use that insert the new employee into the employees table:
-        db.query(
-          `SELECT id FROM roles WHERE ('${newEmpRle}') = roles.job_title;`,
-          function (err, results) {
-            let newEmpRleId = results[0].id;
-            console.log(newEmpRleId);
-            //INSERTING the new Employee into the Employees Table.
-            db.query(
-              `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES('${newEmpFirstNme}','${newEmpLastNme}','${newEmpRleId}','${newEmpMgrId}')`
-            );
-          }
-        );
-      }
-    );
     askFirstQuestions();
   });
 
@@ -254,7 +269,6 @@ function addEmployee() {
       });
 
       if (err) {
-        console.log("first err: ");
         console.log(err);
       }
     }
@@ -271,16 +285,15 @@ function addEmployee() {
       });
 
       if (err) {
-        console.log("second err: ");
         console.log(err);
       }
     }
   );
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
 
 // Start server after DB connection
 db.connect((err) => {
@@ -297,4 +310,5 @@ db.connect((err) => {
 ====================================================================================`
   );
   askFirstQuestions();
+  pushNoManagerOption();
 });
