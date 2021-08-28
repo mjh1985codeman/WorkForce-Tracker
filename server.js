@@ -214,6 +214,33 @@ function addEmployee() {
     console.log(newEmpLastNme);
     console.log(newEmpRle);
     console.log(newEmpMr);
+
+    //INQUIRER PROMPTS done. . .On to the step to INSERT the new Employee into the employees table
+    //Need to get the Manager ID of the Manager that they selected and use that as the
+    //new Employee's manager_id
+
+    db.query(
+      `SELECT id FROM employees WHERE CONCAT(first_name, " ", last_name) = "${newEmpMr}";`,
+      function (err, results) {
+        let newEmpMgrId = results[0].id;
+        console.log(newEmpMgrId);
+
+        //Another db.query to get the role id that matches the role title they selected so we can
+        //use that insert the new employee into the employees table:
+        db.query(
+          `SELECT id FROM roles WHERE ('${newEmpRle}') = roles.job_title;`,
+          function (err, results) {
+            let newEmpRleId = results[0].id;
+            console.log(newEmpRleId);
+            //INSERTING the new Employee into the Employees Table.
+            db.query(
+              `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES('${newEmpFirstNme}','${newEmpLastNme}','${newEmpRleId}','${newEmpMgrId}')`
+            );
+          }
+        );
+      }
+    );
+    askFirstQuestions();
   });
 
   //DB Query to push the available job_title values from the roles table to the
