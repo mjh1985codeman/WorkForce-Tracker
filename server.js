@@ -13,6 +13,12 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+//Global Variables.
+//This is an empty array that gets updated in the addRole function
+//so the user has the appropriate choices when assigning the role they are creating
+//to a department.
+let newRoleDeptArray = [];
+
 function askFirstQuestions() {
   const firstQuestions = [
     {
@@ -102,9 +108,6 @@ function addDepartment() {
 //Add Role Function.
 
 function addRole() {
-  //created newRoleDeptArray variable to be used as the "choices" for the dept_name (from the departments table) that the
-  //new role will belong.
-  let newRoleDeptArray = [];
   const addRolePrompts = [
     {
       type: "input",
@@ -120,9 +123,44 @@ function addRole() {
       type: "list",
       message: "Which Department does this role belong to?",
       name: "newRoleDept",
+      //newRoleDeptArray is a global variable set to an empty array then gets updated in this addRole function.
       choices: newRoleDeptArray,
     },
   ];
+
+  inquirer.prompt(addRolePrompts).then((addRoleResponse) => {
+    let newRoleName = addRoleResponse.newRole;
+    let newRoleSalary = addRoleResponse.newRoleSalary;
+    let newRoleDepartmentName = addRoleResponse.newRoleDept;
+    // let newRoleDeptId = "";
+    console.log(newRoleName);
+    console.log(newRoleSalary);
+
+    db.query(
+      //Getting the department id that corresponds with the new role's department name.
+
+      `SELECT departments.id FROM departments WHERE ('${newRoleDepartmentName}') = departments.dept_name;`,
+      //Call Back Function.
+      function (err, results) {
+        //narrowing down the results to the value of the id that I'm trying to grab. (just the results returned [ TextRow { id: 4 } ] and I needed to get the 4)
+        let newRoleDeptId = results[0].id;
+        //Running the INSERT db.query to add the new role to the roles table.
+        db.query(
+          `INSERT INTO roles (job_title, salary, department_id) VALUES('${newRoleName}','${newRoleSalary}','${newRoleDeptId}');`,
+          function (err, results) {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log("New Role Added!");
+            }
+          }
+        );
+      }
+    );
+
+    // askFirstQuestions();
+  });
+
   db.query(
     //Getting the dept_name values from the departments table
     `SELECT departments.dept_name FROM departments;`,
@@ -134,31 +172,6 @@ function addRole() {
       });
     }
   );
-  inquirer.prompt(addRolePrompts).then((addRoleResponse) => {
-    let newRoleName = addRoleResponse.newRole;
-    let newRoleSalary = addRoleResponse.newRoleSalary;
-    let newRoleDepartmentName = addRoleResponse.newRoleDept;
-    let newRoleDeptId = "";
-    console.log(newRoleName);
-    console.log(newRoleSalary);
-
-    db.query(
-      //Getting the department id that corresponds with the new role's department name.
-
-      `SELECT departments.id FROM departments WHERE ('${newRoleDepartmentName}') = departments.dept_name;`,
-      function (err, results) {
-        let newRoleDeptId = results;
-        console.log(newRoleDeptId);
-        console.log("why is this happening?! " + newRoleDeptId);
-      }
-    );
-
-    // db.query(
-    //   `INSERT INTO roles (job_title, salary, department_id) VALUES('${newRoleName}','${newRoleSalary}','${newRoleDeptId}');`
-    // );
-
-    askFirstQuestions();
-  });
 }
 
 function addEmployee() {
@@ -207,7 +220,7 @@ db.connect((err) => {
     
       Created By: Michael Hodges
     
-=====================================================================================`
+====================================================================================`
   );
   askFirstQuestions();
 });
