@@ -18,6 +18,11 @@ app.use(express.json());
 //so the user has the appropriate choices when assigning the role they are creating
 //to a department.
 let newRoleDeptArray = [];
+//This is an empty array that gets updated in the addEmployee function
+//so the user has the appropriate choices when assigning the role to the new employee they are creating
+//and assigning a manager for the new employee.
+let newEmpRoleArray = [];
+let newEmpManagerArray = [];
 
 function askFirstQuestions() {
   const firstQuestions = [
@@ -158,7 +163,7 @@ function addRole() {
       }
     );
 
-    // askFirstQuestions();
+    askFirstQuestions();
   });
 
   db.query(
@@ -175,8 +180,6 @@ function addRole() {
 }
 
 function addEmployee() {
-  let newEmpRoleArray = [];
-  let newEmpManagerArray = [];
   const addEmpPrompts = [
     {
       type: "input",
@@ -194,14 +197,36 @@ function addEmployee() {
       name: "newEmpRole",
       choices: newEmpRoleArray,
     },
-    // {
-    //   type: "list",
-    //   message: "Choose this employee's Manager",
-    //   name: "newEmpMgr",
-    //   choices: newEmpManagerArray,
-    // },
+    {
+      type: "list",
+      message: "Choose this employee's Manager",
+      name: "newEmpMgr",
+      choices: newEmpManagerArray,
+    },
   ];
-  inquirer.prompt(addEmpPrompts);
+  inquirer.prompt(addEmpPrompts).then((addEmpResponse) => {
+    let newEmpFirstNme = addEmpResponse.newEmpFirstName;
+    let newEmpLastNme = addEmpResponse.newEmpLastName;
+    let newEmpRle = addEmpResponse.newEmpRole;
+    let newEmpMr = addEmpResponse.newEmpMgr;
+
+    console.log(newEmpFirstNme);
+    console.log(newEmpLastNme);
+    console.log(newEmpRle);
+    console.log(newEmpMr);
+  });
+
+  //DB Query to push the available job_title values from the roles table to the
+  //newEmpRoleArray so the user has the appropriate choices.
+  db.query(
+    //Getting the job_title values from the roles table.
+    `SELECT roles.job_title FROM roles;`,
+    function (err, results) {
+      results.forEach((index) => {
+        newEmpRoleArray.push(index.job_title);
+      });
+    }
+  );
 }
 
 app.listen(PORT, () => {
