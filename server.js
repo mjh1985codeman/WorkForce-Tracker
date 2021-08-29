@@ -17,8 +17,8 @@ let newEmpRoleArray = [];
 let newEmpManagerArray = [];
 //These are empty arrays that gets updated in the updateEmployeeRole function
 //so the user has the appropriate choices when assigning the new role to the employee.
-let newRoleEmpNameArray = [];
-let newRoleForEmpArray = [];
+let updateRoleEmpNameArray = [];
+let updateRoleForEmpArray = [];
 
 // function so the addNewEmployee Function has a "None" option for the new employees manager.
 function pushNoManagerOption() {
@@ -293,38 +293,19 @@ function addEmployee() {
 
 // UPDATE EMPLOYEE ROLE //
 
-function updateEmployeeRole() {
-  console.log("You made it here updateEmployee Role function");
-  const updateEmpRolePrompts = [
-    {
-      type: "list",
-      message: "Choose the Employee that you want to update.",
-      name: "newRoleEmpName",
-      choices: newRoleEmpNameArray,
-    },
-    {
-      type: "list",
-      message: "Choose the employee's new role.",
-      name: "newRoleForEmp",
-      choices: newRoleForEmpArray,
-    },
-  ];
-  inquirer.prompt(updateEmpRolePrompts).then((updateEmpRoleResponse) => {
-    let newRoleEmpNmeRes = updateEmpRoleResponse.newRoleEmpName;
-    let newRoleForEmpRes = updateEmpRoleResponse.newRoleForEmp;
-    console.log(newRoleEmpNmeRes);
-    console.log(newRoleForEmpRes);
-    //update db.querys will go here.
-  });
-
+//Created this function because my db.query's to generate the choices were happening
+//at the same time inquirer was trying to throw up the prompts and it was crashing my code!!!
+function generateUpEmRleChs() {
   //DB Query to push the available employee names values from the employees table to the
   //newRoleEmpNameArray so the user has the appropriate choices.
   db.query(
     //Getting the first and last names of the employees from the employees table.
     `SELECT first_name, last_name FROM employees;`,
     function (err, results) {
+      // console.log(results);
       results.forEach((i) => {
-        newRoleEmpNameArray.push(i.first_name + " " + i.last_name);
+        // console.log(updateRoleEmpNameArray);
+        updateRoleEmpNameArray.push(i.first_name + " " + i.last_name);
       });
 
       if (err) {
@@ -336,13 +317,43 @@ function updateEmployeeRole() {
   //DB Query to push the available roles from the roles table
   //so the user can choose which role they want to update the employee to.
   db.query(`SELECT job_title FROM roles;`, function (err, results) {
+    console.log("job_title Results Below:");
+    // console.log(results);
     results.forEach((i) => {
-      newRoleForEmpArray.push(i.job_title);
+      // console.log(updateRoleForEmpArray);
+      updateRoleForEmpArray.push(i.job_title);
     });
 
     if (err) {
       console.log(err);
     }
+  });
+}
+
+function updateEmployeeRole() {
+  // console.log("You made it here updateEmployee Role function");
+  const updateEmpRolePrompts = [
+    {
+      type: "list",
+      message: "Choose the Employee that you want to update.",
+      name: "updateRoleEmpName",
+      choices: updateRoleEmpNameArray,
+    },
+    {
+      type: "list",
+      message: "Choose the employee's new role.",
+      name: "newRoleForEmp",
+      choices: updateRoleForEmpArray,
+    },
+  ];
+  inquirer.prompt(updateEmpRolePrompts).then((updateEmpRoleResponse) => {
+    // saving the user responses to variables.
+    let newRoleEmpNmeRes = updateEmpRoleResponse.updateRoleEmpName;
+    let newRoleForEmpRes = updateEmpRoleResponse.newRoleForEmp;
+    //updating the selected employee's role on the employee's table.
+    db.query(`UPDATE employees SET role_id = (SELECT id FROM roles WHERE job_title = '${newRoleForEmpRes}')
+    WHERE CONCAT(first_name, " ", last_name) = '${newRoleEmpNmeRes}'`);
+    askFirstQuestions();
   });
 }
 
@@ -361,5 +372,6 @@ db.connect((err) => {
 ====================================================================================`
   );
   askFirstQuestions();
+  generateUpEmRleChs();
   pushNoManagerOption();
 });
