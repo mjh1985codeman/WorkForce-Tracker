@@ -10,12 +10,16 @@ const { printTable } = require("console-table-printer");
 //so the user has the appropriate choices when assigning the role they are creating
 //to a department.
 let newRoleDeptArray = [];
+
 //This is an empty array that gets updated in the addEmployee function
 //so the user has the appropriate choices when assigning the role to the new employee they are creating
 //and assigning a manager for the new employee.
 let newEmpRoleArray = [];
-let newEmpManagerArray = [];
+//CREATED FUNCTION TO REMOVE DUPLICATE job_titles FROM DB.QUERY FROM THE newEmpRoleArray varriable array.
+let uniqueEmpRoleArray = (newEmpRoleArray) =>
+  newEmpRoleArray.filter((v, i) => newEmpRoleArray.indexOf(v) === i);
 
+let newEmpManagerArray = [];
 //CREATED FUNCTION TO REMOVE DUPLIATE NAMES FROM DB.QUERY FROM THE newEmpManagerArray variable array.
 let uniqueEmpManagerArray = (newEmpManagerArray) =>
   newEmpManagerArray.filter((v, i) => newEmpManagerArray.indexOf(v) === i);
@@ -172,6 +176,7 @@ function askFirstQuestions() {
         updateEmployeeRole();
         break;
       case "I'm Done":
+        console.log("Thanks for using the WorkForce-Tracker!!!");
         // progammatically exits from the node js program.
         process.exit();
     }
@@ -282,7 +287,7 @@ function addEmployee() {
       type: "list",
       message: "Choose this employee's Role",
       name: "newEmpRole",
-      choices: newEmpRoleArray,
+      choices: uniqueEmpRoleArray(newEmpRoleArray),
     },
     {
       type: "list",
