@@ -15,6 +15,11 @@ let newRoleDeptArray = [];
 //and assigning a manager for the new employee.
 let newEmpRoleArray = [];
 let newEmpManagerArray = [];
+
+//CREATED FUNCTION TO REMOVE DUPLIATE NAMES FROM DB.QUERY FROM THE newEmpManagerArray variable array.
+let uniqueEmpManagerArray = (newEmpManagerArray) =>
+  newEmpManagerArray.filter((v, i) => newEmpManagerArray.indexOf(v) === i);
+
 //These are empty arrays that gets updated in the updateEmployeeRole function
 //so the user has the appropriate choices when assigning the new role to the employee.
 let updateRoleEmpNameArray = [];
@@ -35,6 +40,40 @@ let uniqueUpdateRoleForEmpArray = (updateRoleForEmpArray) =>
 function pushNoManagerOption() {
   let noManagerOption = "None";
   newEmpManagerArray.push(noManagerOption);
+}
+// Function to generate choices for AddEmployee function.
+function generateAddEmpChs() {
+  //DB Query to push the available job_title values from the roles table to the
+  //newEmpRoleArray so the user has the appropriate choices.
+  db.query(
+    //Getting the job_title values from the roles table.
+    `SELECT roles.job_title FROM roles;`,
+    function (err, results) {
+      results.forEach((index) => {
+        newEmpRoleArray.push(index.job_title);
+      });
+
+      if (err) {
+        console.log(err);
+      }
+    }
+  );
+
+  //DB Query to push the available employees first_name and last_name from the employees table
+  //that ARE a manager (aka their manager id is NOT NULL) to the newEmpManagerArray so they
+  //can assign a manager to the new employee.
+  db.query(
+    `SELECT first_name, last_name FROM employees WHERE employees.manager_id IS NOT NULL;`,
+    function (err, results) {
+      results.forEach((index) => {
+        newEmpManagerArray.push(index.first_name + " " + index.last_name);
+      });
+
+      if (err) {
+        console.log(err);
+      }
+    }
+  );
 }
 
 //Created this function because my db.query's to generate the choices were happening
@@ -111,7 +150,7 @@ function askFirstQuestions() {
         break;
       case "View All Employees":
         db.query(
-          `SELECT employees.id, first_name, last_name, job_title, salary, dept_name FROM departments, roles, employees 
+          `SELECT employees.id, first_name, last_name, job_title, salary, dept_name, manager_id FROM departments, roles, employees 
           WHERE employees.role_id = roles.id AND roles.department_id = departments.id ORDER BY employees.id;`,
           function (err, results) {
             printTable(results);
@@ -138,6 +177,7 @@ function askFirstQuestions() {
     }
   });
   generateUpEmRleChs();
+  generateAddEmpChs();
 }
 
 // ADD DEPARTMENT FUNCTION //
@@ -248,7 +288,7 @@ function addEmployee() {
       type: "list",
       message: "Choose this employee's Manager",
       name: "newEmpMgr",
-      choices: newEmpManagerArray,
+      choices: uniqueEmpManagerArray(newEmpManagerArray),
     },
   ];
   inquirer.prompt(addEmpPrompts).then((addEmpResponse) => {
@@ -298,38 +338,6 @@ function addEmployee() {
 
     askFirstQuestions();
   });
-
-  //DB Query to push the available job_title values from the roles table to the
-  //newEmpRoleArray so the user has the appropriate choices.
-  db.query(
-    //Getting the job_title values from the roles table.
-    `SELECT roles.job_title FROM roles;`,
-    function (err, results) {
-      results.forEach((index) => {
-        newEmpRoleArray.push(index.job_title);
-      });
-
-      if (err) {
-        console.log(err);
-      }
-    }
-  );
-
-  //DB Query to push the available employees first_name and last_name from the employees table
-  //that ARE a manager (aka their manager id is NOT NULL) to the newEmpManagerArray so they
-  //can assign a manager to the new employee.
-  db.query(
-    `SELECT first_name, last_name FROM employees WHERE employees.manager_id IS NOT NULL;`,
-    function (err, results) {
-      results.forEach((index) => {
-        newEmpManagerArray.push(index.first_name + " " + index.last_name);
-      });
-
-      if (err) {
-        console.log(err);
-      }
-    }
-  );
 }
 
 // UPDATE EMPLOYEE ROLE //
@@ -400,5 +408,6 @@ db.connect((err) => {
   );
   pushNoManagerOption();
   generateUpEmRleChs();
+  generateAddEmpChs();
   askFirstQuestions();
 });
