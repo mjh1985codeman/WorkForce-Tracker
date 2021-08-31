@@ -18,12 +18,56 @@ let newEmpManagerArray = [];
 //These are empty arrays that gets updated in the updateEmployeeRole function
 //so the user has the appropriate choices when assigning the new role to the employee.
 let updateRoleEmpNameArray = [];
+//CREATED FUNCTION TO REMOVE DUPLIATE NAMES FROM DB.QUERY FROM THE updateRoleEmpNameArray variable array.
+let uniqueUpdateRoleEmpNameArray = (updateRoleEmpNameArray) =>
+  updateRoleEmpNameArray.filter(
+    (v, i) => updateRoleEmpNameArray.indexOf(v) === i
+  );
+
 let updateRoleForEmpArray = [];
+//CREATED FUNCTION TO REMOVE DUPLIATE ROLES FROM DB.QUERY FROM THE updateRoleForEmpArray variable array.
+let uniqueUpdateRoleForEmpArray = (updateRoleForEmpArray) =>
+  updateRoleForEmpArray.filter(
+    (v, i) => updateRoleForEmpArray.indexOf(v) === i
+  );
 
 // function so the addNewEmployee Function has a "None" option for the new employees manager.
 function pushNoManagerOption() {
   let noManagerOption = "None";
   newEmpManagerArray.push(noManagerOption);
+}
+
+//Created this function because my db.query's to generate the choices were happening
+//at the same time inquirer was trying to throw up the prompts and it was crashing my code!!!
+function generateUpEmRleChs() {
+  //DB Query to push the available employee names values from the employees table to the
+  //newRoleEmpNameArray so the user has the appropriate choices.
+  db.query(
+    //Getting the first and last names of the employees from the employees table.
+    `SELECT first_name, last_name FROM employees;`,
+    function (err, results) {
+      results.forEach((i) => {
+        updateRoleEmpNameArray.push(i.first_name + " " + i.last_name);
+      });
+
+      if (err) {
+        console.log(err);
+      }
+    }
+  );
+
+  //DB Query to push the available roles from the roles table
+  //so the user can choose which role they want to update the employee to.
+  db.query(`SELECT job_title FROM roles;`, function (err, results) {
+    results.forEach((i) => {
+      updateRoleForEmpArray.push(i.job_title);
+    });
+
+    if (err) {
+      console.log(err);
+    }
+  });
+  //Calling the uniqureUpdateRoleEmpNameArray to hopefully remove any duplicate names.
 }
 
 // ASK FIRST QUESTIONS FUNCTION //
@@ -52,7 +96,6 @@ function askFirstQuestions() {
     let userResponses = firstQuestionsResponses.firstResponse;
     switch (userResponses) {
       case "View All Departments":
-        console.log("user picked view all departments");
         db.query(`SELECT * FROM departments`, function (err, results) {
           printTable(results);
           askFirstQuestions();
@@ -60,7 +103,6 @@ function askFirstQuestions() {
 
         break;
       case "View All Roles":
-        console.log("user picked view all roles");
         db.query(`SELECT * FROM roles`, function (err, results) {
           printTable(results);
           askFirstQuestions();
@@ -68,11 +110,14 @@ function askFirstQuestions() {
 
         break;
       case "View All Employees":
-        console.log("user picked View All Employees");
-        db.query(`SELECT * FROM employees`, function (err, results) {
-          printTable(results);
-          askFirstQuestions();
-        });
+        db.query(
+          `SELECT employees.id, first_name, last_name, job_title, salary, dept_name FROM departments, roles, employees 
+          WHERE employees.role_id = roles.id AND roles.department_id = departments.id ORDER BY employees.id;`,
+          function (err, results) {
+            printTable(results);
+            askFirstQuestions();
+          }
+        );
         break;
       case "Add a Department":
         addDepartment();
@@ -92,6 +137,7 @@ function askFirstQuestions() {
         process.exit();
     }
   });
+  generateUpEmRleChs();
 }
 
 // ADD DEPARTMENT FUNCTION //
@@ -141,9 +187,6 @@ function addRole() {
     let newRoleName = addRoleResponse.newRole;
     let newRoleSalary = addRoleResponse.newRoleSalary;
     let newRoleDepartmentName = addRoleResponse.newRoleDept;
-    // let newRoleDeptId = "";
-    console.log(newRoleName);
-    console.log(newRoleSalary);
 
     db.query(
       //Getting the department id that corresponds with the new role's department name.
@@ -159,8 +202,6 @@ function addRole() {
           function (err, results) {
             if (err) {
               console.log(err);
-            } else {
-              console.log("New Role Added!");
             }
           }
         );
@@ -293,18 +334,12 @@ function addEmployee() {
 
 // UPDATE EMPLOYEE ROLE //
 
-//Created this function because my db.query's to generate the choices were happening
-//at the same time inquirer was trying to throw up the prompts and it was crashing my code!!!
-function generateUpEmRleChs() {
-  //DB Query to push the available employee names values from the employees table to the
-  //newRoleEmpNameArray so the user has the appropriate choices.
+function updateEmployeeRole() {
   db.query(
     //Getting the first and last names of the employees from the employees table.
     `SELECT first_name, last_name FROM employees;`,
     function (err, results) {
-      // console.log(results);
       results.forEach((i) => {
-        // console.log(updateRoleEmpNameArray);
         updateRoleEmpNameArray.push(i.first_name + " " + i.last_name);
       });
 
@@ -317,10 +352,7 @@ function generateUpEmRleChs() {
   //DB Query to push the available roles from the roles table
   //so the user can choose which role they want to update the employee to.
   db.query(`SELECT job_title FROM roles;`, function (err, results) {
-    console.log("job_title Results Below:");
-    // console.log(results);
     results.forEach((i) => {
-      // console.log(updateRoleForEmpArray);
       updateRoleForEmpArray.push(i.job_title);
     });
 
@@ -328,22 +360,18 @@ function generateUpEmRleChs() {
       console.log(err);
     }
   });
-}
-
-function updateEmployeeRole() {
-  // console.log("You made it here updateEmployee Role function");
   const updateEmpRolePrompts = [
     {
       type: "list",
       message: "Choose the Employee that you want to update.",
       name: "updateRoleEmpName",
-      choices: updateRoleEmpNameArray,
+      choices: uniqueUpdateRoleEmpNameArray(updateRoleEmpNameArray),
     },
     {
       type: "list",
       message: "Choose the employee's new role.",
       name: "newRoleForEmp",
-      choices: updateRoleForEmpArray,
+      choices: uniqueUpdateRoleForEmpArray(updateRoleForEmpArray),
     },
   ];
   inquirer.prompt(updateEmpRolePrompts).then((updateEmpRoleResponse) => {
@@ -360,7 +388,6 @@ function updateEmployeeRole() {
 // Start server after DB connection
 db.connect((err) => {
   if (err) throw err;
-  console.log("Database connected.");
   // Database Connect and Starter Title
   console.log(
     `====================================================================================
@@ -371,7 +398,7 @@ db.connect((err) => {
     
 ====================================================================================`
   );
-  askFirstQuestions();
-  generateUpEmRleChs();
   pushNoManagerOption();
+  generateUpEmRleChs();
+  askFirstQuestions();
 });
