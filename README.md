@@ -27,5 +27,5 @@
 
   ## Video of Application in use: 
 Click [Here](https://youtu.be/nkA8m6KLnZY) for a video demonstration of this application in use!
-(See Dist Folder for an Example of the HTML File that was Generated using this application). 
+
 
