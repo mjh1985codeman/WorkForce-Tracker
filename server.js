@@ -110,7 +110,6 @@ function generateUpEmRleChs() {
       console.log(err);
     }
   });
-  //Calling the uniqureUpdateRoleEmpNameArray to hopefully remove any duplicate names.
 }
 
 // ASK FIRST QUESTIONS FUNCTION //
@@ -154,8 +153,13 @@ function askFirstQuestions() {
         break;
       case "View All Employees":
         db.query(
-          `SELECT employees.id, first_name, last_name, job_title, salary, dept_name, manager_id FROM departments, roles, employees 
-          WHERE employees.role_id = roles.id AND roles.department_id = departments.id ORDER BY employees.id;`,
+          `SELECT employees.id, employees.first_name, employees.last_name, job_title, salary, dept_name, 
+          CONCAT(m.first_name, ' ', m.last_name) AS manager 
+          FROM employees 
+          LEFT JOIN roles ON employees.role_id = roles.id
+          LEFT JOIN departments ON roles.department_id = departments.id
+          LEFT JOIN employees m ON m.id = employees.manager_id
+          ORDER BY employees.id;`,
           function (err, results) {
             printTable(results);
             askFirstQuestions();
